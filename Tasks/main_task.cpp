@@ -22,6 +22,7 @@
 #include "dm4310_drv.hpp"
 #include "iwdg.h"
 #include "math.h"
+#include "pid.hpp"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
 /* Private types -------------------------------------------------------------*/
@@ -32,6 +33,8 @@
 uint32_t tick = 0;
 //常量定义
 //变量定义
+PID_ pid1(1.0f,0.0f,0.01f,0.0f,0.0f);
+float now_vel = 0.0f;
 //函数声明
 void MODE4(void);
 void MODE1(void);
@@ -94,8 +97,11 @@ void MODE4(void) {
   CAN_Send_Msg(&hcan2,KONG,0x200,8);
 }
 void MODE1(void) {
-  int16_t a = 3000.0f;
-  uint8_t DATA[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  float b = 3.0f;
+  pid1.set_error(b - now_vel);
+  pid1.calc();
+  int16_t a = pid1.get_output();//会损失一次精度
+  uint8_t DATA[8] = {0, 0, 0, 0, 0, 0, 0, 0};//这里控制电流可能不够大
   DATA[0] = (uint8_t)(a >> 8);
   DATA[1] = (uint8_t)(a);
   CAN_Send_Msg(&hcan2,DATA,0x200,8);
