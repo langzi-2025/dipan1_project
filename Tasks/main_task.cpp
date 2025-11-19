@@ -1,3 +1,11 @@
+/*
+ * @Author: rogue-wave zhangjingjie@zju.edu.cn
+ * @Date: 2025-11-19 21:51:59
+ * @LastEditors: rogue-wave zhangjingjie@zju.edu.cn
+ * @LastEditTime: 2025-11-19 21:54:30
+ * @FilePath: \dipan1_project\Tasks\main_task.cpp
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 /**
 *******************************************************************************
 * @file      :main_task.cpp
@@ -70,7 +78,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
   if (huart == &huart3) {
     if (Size == remote_control::kRcRxDataLen) {
       // TODO:在这里刷新看门狗
-
+      HAL_IWDG_Refresh(&hiwdg);
       rc_ptr->decode(rx_buf);
     }
 
