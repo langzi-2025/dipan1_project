@@ -30,6 +30,11 @@
 /* Private function prototypes -----------------------------------------------*/
 
 uint32_t tick = 0;
+//常量定义
+//变量定义
+//函数声明
+void MODE4(void);
+void MODE1(void);
 
 namespace remote_control = hello_world::devices::remote_control;
 static const uint8_t kRxBufLen = remote_control::kRcRxDataLen;
@@ -57,7 +62,14 @@ void MainInit(void) {
   HAL_TIM_Base_Start_IT(&htim6);
 }
 
-void MainTask(void) { tick++; }
+void MainTask(void) { 
+  tick++; 
+  if(tick < 1000){
+    MODE4();
+    return;
+  }
+  MODE1();
+}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
@@ -70,10 +82,21 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
   if (huart == &huart3) {
     if (Size == remote_control::kRcRxDataLen) {
       // TODO:在这里刷新看门狗
-
+      HAL_IWDG_Refresh(&hiwdg);
       rc_ptr->decode(rx_buf);
     }
 
     HAL_UARTEx_ReceiveToIdle_DMA(&huart3, rx_buf, kRxBufLen);
   }
+}
+void MODE4(void) {
+  uint8_t KONG[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  CAN_Send_Msg(&hcan2,KONG,0x200,8);
+}
+void MODE1(void) {
+  int16_t a = 3000.0f;
+  uint8_t DATA[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  DATA[0] = (uint8_t)(a >> 8);
+  DATA[1] = (uint8_t)(a);
+  CAN_Send_Msg(&hcan2,DATA,0x200,8);
 }
