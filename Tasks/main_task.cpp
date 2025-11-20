@@ -2,7 +2,7 @@
  * @Author: rogue-wave zhangjingjie@zju.edu.cn
  * @Date: 2025-11-19 21:51:59
  * @LastEditors: rogue-wave zhangjingjie@zju.edu.cn
- * @LastEditTime: 2025-11-20 18:37:40
+ * @LastEditTime: 2025-11-20 19:30:09
  * @FilePath: \dipan1_project\Tasks\main_task.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -48,10 +48,11 @@ PID_ pid3(1.0f,0.0f,0.01f,0.0f,0.0f);
 PID_ pid4(1.0f,0.0f,0.01f,0.0f,0.0f);
 float now_vel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 DIPAN dipan;
+uint8_t DIPAN_YUNTAI_DATA[8]={0,0,0,0,0,0,0,0};
 //函数声明
 void MODE4(void);
 void MODE1(void);
-
+void SEND_DATA_TO_YUNPAN(float a,float b);
 namespace remote_control = hello_world::devices::remote_control;
 static const uint8_t kRxBufLen = remote_control::kRcRxDataLen;
 static uint8_t rx_buf[kRxBufLen];
@@ -108,6 +109,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 void MODE4(void) {
   uint8_t KONG[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   CAN_Send_Msg(&hcan2,KONG,0x200,8);
+  SEND_DATA_TO_YUNPAN(0,0);
 }
 void MODE1(void) {
   
@@ -135,4 +137,16 @@ void MODE1(void) {
   DATA[6] = (uint8_t)(a >> 8);
   DATA[7] = (uint8_t)(a);
   CAN_Send_Msg(&hcan2,DATA,0x200,8);
+  //发送给云台部分
+  SEND_DATA_TO_YUNPAN(rc_ptr->rc_rv(),rc_ptr->rc_rh());
+}
+void SEND_DATA_TO_YUNPAN(float a,float b)
+{
+  int16_t temp = (int16_t)(a*1000);
+  DIPAN_YUNTAI_DATA[0] = (uint8_t)(temp>>8);
+  DIPAN_YUNTAI_DATA[1] = (uint8_t)(temp);
+  temp = (int16_t)(b*1000);
+  DIPAN_YUNTAI_DATA[2] = (uint8_t)(temp>>8);
+  DIPAN_YUNTAI_DATA[3] = (uint8_t)(temp);
+  CAN_Send_Msg(&hcan1,DIPAN_YUNTAI_DATA,0x1FF,8);
 }
