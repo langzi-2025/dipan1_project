@@ -97,7 +97,7 @@ void MODE4(void) {
   CAN_Send_Msg(&hcan2,KONG,0x200,8);
 }
 void MODE1(void) {
-  float b = 3.0f;
+  float b = 4.0f;
   pid1.set_error(b - now_vel);
   pid1.calc();
   int16_t a = pid1.get_output();//会损失一次精度
