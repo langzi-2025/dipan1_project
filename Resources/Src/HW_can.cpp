@@ -24,7 +24,7 @@
 static CAN_RxHeaderTypeDef rx_header1, rx_header2;
 static uint8_t can1_rx_data[8], can2_rx_data[8];
 uint32_t pTxMailbox;
-extern float now_vel;
+extern float* now_vel;
 float state = 1;
 /* External variables --------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -113,7 +113,22 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
       if (rx_header2.StdId == 0x201) { // 帧头校验
         state = 0;// 校验通过进行具体数据处理
         int16_t temp = (int16_t)((uint16_t)can2_rx_data[0]<<8 | (uint16_t)can2_rx_data[1]);
-        now_vel = (float)temp/60.0f;
+        now_vel[0] = (float)temp;
+      }
+      if (rx_header2.StdId == 0x202) { // 帧头校验
+        state = 0;// 校验通过进行具体数据处理
+        int16_t temp = (int16_t)((uint16_t)can2_rx_data[0]<<8 | (uint16_t)can2_rx_data[1]);
+        now_vel[1] = (float)temp;
+      }
+      if (rx_header2.StdId == 0x203) { // 帧头校验
+        state = 0;// 校验通过进行具体数据处理
+        int16_t temp = (int16_t)((uint16_t)can2_rx_data[0]<<8 | (uint16_t)can2_rx_data[1]);
+        now_vel[2] = (float)temp;
+      }
+      if (rx_header2.StdId == 0x204) { // 帧头校验
+        state = 0;// 校验通过进行具体数据处理
+        int16_t temp = (int16_t)((uint16_t)can2_rx_data[0]<<8 | (uint16_t)can2_rx_data[1]);
+        now_vel[3] = (float)temp;
       }
     }
   }

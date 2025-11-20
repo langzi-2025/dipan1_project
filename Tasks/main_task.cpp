@@ -2,7 +2,7 @@
  * @Author: rogue-wave zhangjingjie@zju.edu.cn
  * @Date: 2025-11-19 21:51:59
  * @LastEditors: rogue-wave zhangjingjie@zju.edu.cn
- * @LastEditTime: 2025-11-19 21:54:30
+ * @LastEditTime: 2025-11-20 18:19:00
  * @FilePath: \dipan1_project\Tasks\main_task.cpp
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -31,6 +31,7 @@
 #include "iwdg.h"
 #include "math.h"
 #include "pid.hpp"
+#include "dipan.hpp"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
 /* Private types -------------------------------------------------------------*/
@@ -42,7 +43,11 @@ uint32_t tick = 0;
 //常量定义
 //变量定义
 PID_ pid1(1.0f,0.0f,0.01f,0.0f,0.0f);
-float now_vel = 0.0f;
+PID_ pid2(1.0f,0.0f,0.01f,0.0f,0.0f);
+PID_ pid3(1.0f,0.0f,0.01f,0.0f,0.0f);
+PID_ pid4(1.0f,0.0f,0.01f,0.0f,0.0f);
+float now_vel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+DIPAN dipan;
 //函数声明
 void MODE4(void);
 void MODE1(void);
@@ -105,12 +110,29 @@ void MODE4(void) {
   CAN_Send_Msg(&hcan2,KONG,0x200,8);
 }
 void MODE1(void) {
-  float b = 4.0f;
-  pid1.set_error(b - now_vel);
+  
+  dipan.set_vel_gm(rc_ptr->rc_lv(),rc_ptr->rc_rh());
+  dipan.jiesuan();
+  pid1.set_error(dipan.v_1-now_vel[0]);
   pid1.calc();
-  int16_t a = pid1.get_output();//会损失一次精度
+  int16_t a = 10*pid1.get_output();//会损失一次精度
   uint8_t DATA[8] = {0, 0, 0, 0, 0, 0, 0, 0};//这里控制电流可能不够大
   DATA[0] = (uint8_t)(a >> 8);
   DATA[1] = (uint8_t)(a);
+  pid2.set_error(dipan.v_2-now_vel[1]);
+  pid2.calc();
+  a = 10*pid2.get_output();
+  DATA[2] = (uint8_t)(a >> 8);
+  DATA[3] = (uint8_t)(a);
+  pid3.set_error(dipan.v_3-now_vel[2]);
+  pid3.calc();
+  a = 10*pid3.get_output();
+  DATA[4] = (uint8_t)(a >> 8);
+  DATA[5] = (uint8_t)(a);
+  pid4.set_error(dipan.v_4-now_vel[3]);
+  pid4.calc();
+  a = 10*pid4.get_output();
+  DATA[6] = (uint8_t)(a >> 8);
+  DATA[7] = (uint8_t)(a);
   CAN_Send_Msg(&hcan2,DATA,0x200,8);
 }
